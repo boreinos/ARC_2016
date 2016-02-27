@@ -7,6 +7,7 @@ import android.os.Bundle;
 import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.Display;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -14,6 +15,8 @@ import java.io.IOException;
 import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.DatagramPacket;
+
+import android.view.inputmethod.EditorInfo;
 import android.widget.Button;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -82,7 +85,7 @@ public class MainSend extends ActionBarActivity {
     double xRatioLeftJoyStick = 0.139844;
     double yRatioLeftJoyStick = 0.776596;
     double xRatioRightJoyStick= 0.861719;
-    double yRatioRightJoyStick = 0.765957;
+    double yRatioRightJoyStick = 0.776596;
     double xRatioSelect = 0.071875;
     double yRatioSelect = 0.531915;
     double xRatioStart = 0.196094;
@@ -98,8 +101,8 @@ public class MainSend extends ActionBarActivity {
     double joy_left_center_y;
     double joy_right_center_x;
     double joy_right_center_y;
-    double joy_right_radius = 180;
-    double joy_left_radius = 180;
+    double joy_right_radius = 100;
+    double joy_left_radius = 100;
     double button_and_center_x;
     double button_and_center_y;
     double button_and_radius=55;
@@ -172,6 +175,16 @@ public class MainSend extends ActionBarActivity {
             //your codes here
 
         }
+        //set focusable
+        txt_ip   = (EditText)findViewById(R.id.editText_ip);
+        txt_ip.clearFocus();
+        txt_ip.setFocusableInTouchMode(true);
+        txt_port   = (EditText)findViewById(R.id.editText_port);
+        txt_port.setFocusable(false);
+        txt_port.setFocusableInTouchMode(true);
+        txt_port.setOnEditorActionListener(clearReturnToFullScreen());
+        txt_ip.setOnEditorActionListener(clearReturnToFullScreen());
+
         txt1   = (TextView)findViewById(R.id.textView_top);
         bt_open_port = (Button) findViewById(R.id.button_open_port);
         bt_open_port.setOnClickListener(new View.OnClickListener(){
@@ -189,9 +202,6 @@ public class MainSend extends ActionBarActivity {
             }
 
         });
-
-
-
 
         bt_send_port = (Button) findViewById(R.id.button_send_port);
         bt_send_port.setOnClickListener(new View.OnClickListener(){
@@ -220,18 +230,63 @@ public class MainSend extends ActionBarActivity {
     protected void onResume(){
         super.onResume();
                 /* try to hide status bar */
-        View decorView = getWindow().getDecorView();
-        int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
+        final View decorView = getWindow().getDecorView();
+        final int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
         decorView.setSystemUiVisibility(uiOptions);
+        decorView.setOnSystemUiVisibilityChangeListener
+                (new View.OnSystemUiVisibilityChangeListener(){
+            @Override
+        public void onSystemUiVisibilityChange(int visibility){
+                if ((visibility & View.SYSTEM_UI_FLAG_FULLSCREEN)==0){
+                    //nothing
+                }else{
+                    decorView.setSystemUiVisibility(uiOptions);
+                }
+            }
+        });
     }
+    EditText.OnEditorActionListener clearReturnToFullScreen(){
+        EditText.OnEditorActionListener actionListener = new EditText.OnEditorActionListener(){
+            @Override
+        public boolean onEditorAction(TextView v, int actionId, KeyEvent event){
+                if (actionId== EditorInfo.IME_ACTION_DONE){
+                    v.clearFocus();
+                    final View decorView = getWindow().getDecorView();
+                    final int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
+                    decorView.setSystemUiVisibility(uiOptions);
+                }
+                return false;
+            }
+        };
+        return actionListener;
+    }
+//    View.OnFocusChangeListener returnToFullScreen(){
+//       View.OnFocusChangeListener focusChangeListener= new View.OnFocusChangeListener(){
+//            @Override
+//            public void onFocusChange(View v, boolean hasFocus) {
+//                if (!hasFocus){
+//                    final View decorView = getWindow().getDecorView();
+//                    final int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
+//                    decorView.setSystemUiVisibility(uiOptions);
+//                }
+//            }
+//
+//
+//        };
+//               return focusChangeListener;
+//    }
     @Override
     public void onWindowFocusChanged(boolean hasFocus){
         super.onWindowFocusChanged(hasFocus);
         /* try to hide status bar */
-        View decorView = getWindow().getDecorView();
-        int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
-        decorView.setSystemUiVisibility(uiOptions);
+        if (!hasFocus) {
+            final View decorView = getWindow().getDecorView();
+            int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
+            decorView.setSystemUiVisibility(uiOptions);
+        }
     }
+
+
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -264,6 +319,8 @@ public class MainSend extends ActionBarActivity {
         txt_touch_y   = (TextView)findViewById(R.id.textView_touch_y);
         txt_touch_x.setText(Integer.toString(x));
         txt_touch_y.setText(Integer.toString(y));
+
+
         int pressedButton = firstPress(x, y);
         if (pressedButton!=touchPad && pressedButton!=rightJoyTick && pressedButton!=leftJoySick){
             switch (event.getAction()) {
@@ -359,6 +416,7 @@ public class MainSend extends ActionBarActivity {
     public void client_send() throws IOException {
         //SystemClock.sleep(1000);
         txt_ip   = (EditText)findViewById(R.id.editText_ip);
+
         InetAddress IPAddress =  InetAddress.getByName(txt_ip.getText().toString());
         str="dan1";
         send_data = str.getBytes();
