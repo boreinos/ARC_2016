@@ -260,21 +260,7 @@ public class MainSend extends ActionBarActivity {
         };
         return actionListener;
     }
-//    View.OnFocusChangeListener returnToFullScreen(){
-//       View.OnFocusChangeListener focusChangeListener= new View.OnFocusChangeListener(){
-//            @Override
-//            public void onFocusChange(View v, boolean hasFocus) {
-//                if (!hasFocus){
-//                    final View decorView = getWindow().getDecorView();
-//                    final int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
-//                    decorView.setSystemUiVisibility(uiOptions);
-//                }
-//            }
-//
-//
-//        };
-//               return focusChangeListener;
-//    }
+
     @Override
     public void onWindowFocusChanged(boolean hasFocus){
         super.onWindowFocusChanged(hasFocus);
