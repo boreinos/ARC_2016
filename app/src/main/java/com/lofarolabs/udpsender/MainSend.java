@@ -1,7 +1,12 @@
 package com.lofarolabs.udpsender;
 
+import android.graphics.Point;
+import android.os.Vibrator;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.DisplayMetrics;
+import android.util.Log;
+import android.view.Display;
 import android.view.Menu;
 import android.view.MenuItem;
 
@@ -11,6 +16,8 @@ import java.net.InetAddress;
 import java.net.DatagramPacket;
 import android.widget.Button;
 import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.os.SystemClock;
 import android.os.StrictMode;
@@ -31,8 +38,21 @@ import android.graphics.Bitmap;
 import java.io.ByteArrayOutputStream;
 import java.nio.ByteBuffer;
 import android.text.SpannableString;
+import android.widget.Toast;
 
 public class MainSend extends ActionBarActivity {
+
+    /*define button constants */
+    private final static int touchPad = 273;
+    private final static int rightJoyTick =274;
+    private final static int leftJoySick = 275;
+    private final static int atButton = 276;
+    private final static int andButton = 277;
+    private final static int percentButton = 278;
+    private final static int hashButton = 279;
+    private final static int startButton = 280;
+    private final static int selectButton = 281;
+
     private static final String host = null;
     private int port;
     String str=null;
@@ -50,65 +70,99 @@ public class MainSend extends ActionBarActivity {
     Paint paint = new Paint();
     ImageView drawingImageView;
 
-    /* calibration for nexus 7 */
-    double touch_center_y = 660.0;
-    double touch_center_x = 960.0;
-    double touch_delta_x = 400.0;
-    double touch_delta_y = 280.0;
-    double joy_left_center_x = 245.0;
-    double joy_left_center_y = 880.0;
-    double joy_right_center_x = 1685.0;
-    double joy_right_center_y = 880.0;
-    double joy_right_radius = 180.0;
-    double joy_left_radius = 180.0;
-    double button_and_center_x = 1680.0;
-    double button_and_center_y = 570.0;
-    double button_and_radius = 60.0;
-    double button_at_center_x = 1680.0;
-    double button_at_center_y = 285.0;
-    double button_at_radius = 60.0;
-    double button_hash_center_x = 1520.0;
-    double button_hash_center_y = 425.0;
-    double button_hash_radius = 60.0;
-    double button_percent_center_x = 1825.0;
-    double button_percent_center_y = 425.0;
-    double button_percent_radius = 60.0;
-    double button_start_center_x = 365.0;
-    double button_start_center_y = 630.0;
-    double button_start_delta_x = 95.0;
-    double button_start_delta_y = 45.0;
-    double button_select_center_x = 120.0;
-    double button_select_center_y = 630.0;
-    double button_select_delta_x = 95.0;
-    double button_select_delta_y = 45.0;
+    /*Ratios for buttons */
+    double xRatioAtButton = 0.865625;
+    double yRatioAtButton = 0.182181;
+    double xRatioHashButton= 0.774219;
+    double yRatioHashButton = 0.332447;
+    double xRatioAndButton = 0.870313;
+    double yRatioAndButton = 0.461436;
+    double xRatioPercentButton = 0.939844;
+    double yRatioPercentButton = 0.321809;
+    double xRatioLeftJoyStick = 0.139844;
+    double yRatioLeftJoyStick = 0.776596;
+    double xRatioRightJoyStick= 0.861719;
+    double yRatioRightJoyStick = 0.765957;
+    double xRatioSelect = 0.071875;
+    double yRatioSelect = 0.531915;
+    double xRatioStart = 0.196094;
+    double yRatioStart = 0.531915;
+    double xRatioCenter = 0.497656;
+    double yRatioCenter = 0.553191;
+    /* button location declarations */
+    double touch_center_y;
+    double touch_center_x;
+    double touch_delta_x = 300;
+    double touch_delta_y = 180;
+    double joy_left_center_x;
+    double joy_left_center_y;
+    double joy_right_center_x;
+    double joy_right_center_y;
+    double joy_right_radius = 180;
+    double joy_left_radius = 180;
+    double button_and_center_x;
+    double button_and_center_y;
+    double button_and_radius=55;
+    double button_at_center_x;
+    double button_at_center_y;
+    double button_at_radius=55;
+    double button_hash_center_x;
+    double button_hash_center_y;
+    double button_hash_radius=55;
+    double button_percent_center_x;
+    double button_percent_center_y;
+    double button_percent_radius=55;
+    double button_start_center_x;
+    double button_start_center_y;
+    double button_start_delta_x=95;
+    double button_start_delta_y=45;
+    double button_select_center_x;
+    double button_select_center_y;
+    double button_select_delta_x = 95;
+    double button_select_delta_y = 45;
+    ImageView buttonAnd;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         getSupportActionBar().setDisplayHomeAsUpEnabled(true);
         getSupportActionBar().setIcon(R.drawable.ic_launcher_arc);
+        setContentView(R.layout.activity_main_send);
 
         mActivePointers = new SparseArray<PointF>();
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        Log.e("WIDTH: ", Integer.toString(size.x));
+        Log.e("HEIGHT: ",Integer.toString(size.y));
 
+/*      DO WE NEED DENSITY?
+        DisplayMetrics metrics = getResources().getDisplayMetrics();
+        float densityDpi = metrics.density;*/
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-        //BitmapDrawable ob = new BitmapDrawable(getResources(), bitmap)
-        //image.setBackground(Drawable background)
-
-
-
+        /*assign coordinates */
+        /*buttons */
+        button_and_center_x = xRatioAndButton * size.x;
+        button_and_center_y = yRatioAndButton * size.y;
+        button_at_center_x  = xRatioAtButton * size.x;
+        button_at_center_y  = yRatioAtButton *size.y;
+        button_hash_center_x = xRatioHashButton * size.x;
+        button_hash_center_y = yRatioHashButton * size.y;
+        button_percent_center_x = xRatioPercentButton * size.x;
+        button_percent_center_y = yRatioPercentButton * size.y;
+        /*joy stick */
+        joy_left_center_x = xRatioLeftJoyStick*size.x;
+        joy_left_center_y = yRatioLeftJoyStick*size.y;
+        joy_right_center_x= xRatioRightJoyStick*size.x;
+        joy_right_center_y = yRatioRightJoyStick*size.y;
+        /*select and start */
+        button_select_center_x = xRatioSelect *size.x;
+        button_select_center_y = yRatioSelect *size.y;
+        button_start_center_x = xRatioStart * size.x;
+        button_start_center_y = yRatioStart * size.y;
+        /*center piece */
+        touch_center_x = xRatioCenter*size.x;
+        touch_center_y = yRatioCenter*size.y;
         int SDK_INT = android.os.Build.VERSION.SDK_INT;
         if (SDK_INT > 8)
         {
@@ -118,21 +172,10 @@ public class MainSend extends ActionBarActivity {
             //your codes here
 
         }
-
-
-
-
-
-        setContentView(R.layout.activity_main_send);
         txt1   = (TextView)findViewById(R.id.textView_top);
         bt_open_port = (Button) findViewById(R.id.button_open_port);
         bt_open_port.setOnClickListener(new View.OnClickListener(){
             public void onClick(View v) {
-                //bt_open_port.setText("Dan1");
-                // Perform action on click
-                //textIn.setText("test");
-                //txt2.setText("text2");
-                //task.execute(null);
                 str="temp";
                 try {
                     client_open();
@@ -173,7 +216,22 @@ public class MainSend extends ActionBarActivity {
         });
 
     }
-
+    @Override
+    protected void onResume(){
+        super.onResume();
+                /* try to hide status bar */
+        View decorView = getWindow().getDecorView();
+        int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
+    @Override
+    public void onWindowFocusChanged(boolean hasFocus){
+        super.onWindowFocusChanged(hasFocus);
+        /* try to hide status bar */
+        View decorView = getWindow().getDecorView();
+        int uiOptions = decorView.SYSTEM_UI_FLAG_FULLSCREEN;
+        decorView.setSystemUiVisibility(uiOptions);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
@@ -206,76 +264,81 @@ public class MainSend extends ActionBarActivity {
         txt_touch_y   = (TextView)findViewById(R.id.textView_touch_y);
         txt_touch_x.setText(Integer.toString(x));
         txt_touch_y.setText(Integer.toString(y));
-        //txt1.setText(Integer.toString(event.getPointerCount()));
+        int pressedButton = firstPress(x, y);
+        if (pressedButton!=touchPad && pressedButton!=rightJoyTick && pressedButton!=leftJoySick){
+            switch (event.getAction()) {
 
-        switch (event.getAction()) {
+                case MotionEvent.ACTION_DOWN:
+                    txt1.setText("dana");
+                    for (int size = event.getPointerCount(), i = 0; i < size; i++) {
+                        txt1.setText("danb");
+                        PointF point = mActivePointers.get(event.getPointerId(i));
+                        txt1.setText("danc");
+                        if (1==1) {
+                            txt1.setText("dand");
+                            float xx = event.getX(i);
+                            float yy = event.getY(i);
 
-            case MotionEvent.ACTION_DOWN:
-/*
-                if(pressedUp == false){
-                    pressedUp = true;
-                    try {
-                        txt1.setText("dan1");
-                        client_send_buff("xx");
-                        txt1.setText("dan");
-                        //txt1.setText(modifiedSentence);
-                    } catch (IOException e) {
-                        // TODO Auto-generated catch block
-                        txt1.setText(e.toString());
-                        e.printStackTrace();
-                    }
-                }
-                */
-                break;
-            case MotionEvent.ACTION_UP:
+                            boolean openFlag = false;
+                            if (!(client_socket == null)) {
+                                openFlag = (client_socket.getLocalPort() == Integer.parseInt(txt_port.getText().toString())) & !client_socket.isClosed();
+                            }
 
-                pressedUp = false;
+                            if(openFlag) {
+                                String buff = parseTouch(xx, yy);
+                                if(buff != null) {
+                                    try {
+                                        client_send_buff(buff);
+                                        //txt1.setText(modifiedSentence);
+                                    } catch (IOException e) {
+                                        // TODO Auto-generated catch block
+                                        txt1.setText(e.toString());
+                                        e.printStackTrace();
+                                    }
+                                }
+                            }
 
-        }
-
-
-
-
-
-        txt1.setText("dana");
-        for (int size = event.getPointerCount(), i = 0; i < size; i++) {
-            txt1.setText("danb");
-            PointF point = mActivePointers.get(event.getPointerId(i));
-            txt1.setText("danc");
-            if (1==1) {
-                txt1.setText("dand");
-                float xx = event.getX(i);
-                float yy = event.getY(i);
-
-                boolean openFlag = false;
-                if (!(client_socket == null)) {
-                    openFlag = (client_socket.getLocalPort() == Integer.parseInt(txt_port.getText().toString())) & !client_socket.isClosed();
-                }
-
-                if(openFlag) {
-                    String buff = parseTouch(xx, yy);
-                    if(buff != null) {
-                        try {
-                            client_send_buff(buff);
-                            //txt1.setText(modifiedSentence);
-                        } catch (IOException e) {
-                            // TODO Auto-generated catch block
-                            txt1.setText(e.toString());
-                            e.printStackTrace();
                         }
                     }
-                }
+                    break;
+                case MotionEvent.ACTION_UP:
+                    pressedUp = false;
+                    break;
+            }
+        }else {
+        /* else for joysticks and touch pad */
+            txt1.setText("dana");
+            for (int size = event.getPointerCount(), i = 0; i < size; i++) {
+                txt1.setText("danb");
+                PointF point = mActivePointers.get(event.getPointerId(i));
+                txt1.setText("danc");
+                if (1 == 1) {
+                    txt1.setText("dand");
+                    float xx = event.getX(i);
+                    float yy = event.getY(i);
 
+                    boolean openFlag = false;
+                    if (!(client_socket == null)) {
+                        openFlag = (client_socket.getLocalPort() == Integer.parseInt(txt_port.getText().toString())) & !client_socket.isClosed();
+                    }
+
+                    if (openFlag) {
+                        String buff = parseTouch(xx, yy);
+                        if (buff != null) {
+                            try {
+                                client_send_buff(buff);
+                                //txt1.setText(modifiedSentence);
+                            } catch (IOException e) {
+                                // TODO Auto-generated catch block
+                                txt1.setText(e.toString());
+                                e.printStackTrace();
+                            }
+                        }
+                    }
+
+                }
             }
         }
-
-        /*
-        switch (event.getAction()) {
-            case MotionEvent.ACTION_DOWN:
-            case MotionEvent.ACTION_MOVE:
-            case MotionEvent.ACTION_UP:
-        }
-        */
         return false;
     }
 /*
@@ -340,6 +403,45 @@ public class MainSend extends ActionBarActivity {
     public static double toDouble(byte[] bytes) {
         return ByteBuffer.wrap(bytes).getDouble();
     }
+    public int firstPress(float x, float y){
+        if(
+                x > (touch_center_x-touch_delta_x) &
+                        x < (touch_center_x+touch_delta_x) &
+                        y > (touch_center_y-touch_delta_y) &
+                        y < (touch_center_y+touch_delta_y))
+            return touchPad;
+        else if((Math.sqrt((x-joy_left_center_x)*(x-joy_left_center_x) +
+                (y-joy_left_center_y)*(y-joy_left_center_y)) < joy_left_radius))
+            return leftJoySick;
+        else if((Math.sqrt((x-joy_right_center_x)*(x-joy_right_center_x) +
+                (y-joy_right_center_y)*(y-joy_right_center_y)) < joy_right_radius))
+            return rightJoyTick;
+        else if((Math.sqrt((x-button_at_center_x)*(x-button_at_center_x) +
+                (y-button_at_center_y)*(y-button_at_center_y)) < button_at_radius))
+            return atButton;
+        else if((Math.sqrt((x-button_hash_center_x)*(x-button_hash_center_x) +
+                (y-button_hash_center_y)*(y-button_hash_center_y)) < button_hash_radius))
+            return hashButton;
+        else if((Math.sqrt((x-button_percent_center_x)*(x-button_percent_center_x) +
+                (y-button_percent_center_y)*(y-button_percent_center_y)) < button_percent_radius))
+            return percentButton;
+        else if ((Math.sqrt((x-button_and_center_x)*(x-button_and_center_x) +
+                (y-button_and_center_y)*(y-button_and_center_y)) < button_and_radius))
+            return andButton;
+        else if(x > (button_start_center_x-button_start_delta_x) &
+                x < (button_start_center_x+button_start_delta_x) &
+                y > (button_start_center_y-button_start_delta_y) &
+                y < (button_start_center_y+button_start_delta_y))
+            return startButton;
+        else if(x > (button_select_center_x-button_select_delta_x) &
+                x < (button_select_center_x+button_select_delta_x) &
+                y > (button_select_center_y-button_select_delta_y) &
+                y < (button_select_center_y+button_select_delta_y))
+            return selectButton;
+        else
+            return -1;
+    }
+
 
     public String parseTouch(float x, float y){
         byte[] button = {0};
@@ -442,6 +544,9 @@ public class MainSend extends ActionBarActivity {
             button = ("t").getBytes();
             double xx = (x-button_at_center_x)/button_at_radius;
             double yy = -(y-button_at_center_y)/button_at_radius;
+            startVibrate();
+            Log.e("@BUTTON: ", "I was pressed");
+
 
             try {
 
@@ -470,6 +575,8 @@ public class MainSend extends ActionBarActivity {
             button = ("t").getBytes();
             double xx = (x-button_hash_center_x)/button_hash_radius;
             double yy = -(y-button_hash_center_y)/button_hash_radius;
+            Log.e("#BUTTON: ","I was pressed");
+            startVibrate();
 
             try {
 
@@ -498,6 +605,8 @@ public class MainSend extends ActionBarActivity {
             button = ("t").getBytes();
             double xx = (x-button_percent_center_x)/button_percent_radius;
             double yy = -(y-button_percent_center_y)/button_percent_radius;
+            Log.e("%BUTTON: ","I was pressed");
+            startVibrate();
 
             try {
 
@@ -525,6 +634,9 @@ public class MainSend extends ActionBarActivity {
             button = ("t").getBytes();
             double xx = (x-button_and_center_x)/button_and_radius;
             double yy = -(y-button_and_center_y)/button_and_radius;
+            Log.e("&BUTTON: ", "I was pressed");
+            startVibrate();
+
 
             try {
 
@@ -600,6 +712,15 @@ public class MainSend extends ActionBarActivity {
 
 
         return theOut;
+    }
+    Vibrator vibrator;
+    public void startVibrate(){
+        long pattern[]={0, 100};
+        vibrator = (Vibrator)getSystemService(Context.VIBRATOR_SERVICE);
+        vibrator.vibrate(pattern,-1);
+    }
+    public void stopVibrate(){
+        vibrator.cancel();
     }
 }
 
